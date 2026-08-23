@@ -1,0 +1,43 @@
+﻿# Gradle
+*.iml
+.gradle/
+/build/
+/app/build/
+
+# IDE
+/.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local config (contains SDK path, do not commit)
+local.properties
+
+# Signing
+*.jks
+*.keystore
+app/keystore.properties
+
+# Build outputs
+*.apk
+*.aab
+*.zip
+
+# Room schema export (regenerated at build time)
+app/schemas/*.json
+
+# Temporary scripts and patches
+*.py
+patch_*.py
+send_*.py
+
+# Internal planning docs
+.trae/
+
+# Misc
+/captures/
+.externalNativeBuild/
+.cxx/

@@ -1,0 +1,215 @@
+package com.realtor.geeksales.ui.screen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.realtor.geeksales.data.db.FollowUp
+import com.realtor.geeksales.navigation.Routes
+import com.realtor.geeksales.ui.components.AsciiDivider
+import com.realtor.geeksales.ui.components.EmptyState
+import com.realtor.geeksales.ui.components.GeekCard
+import com.realtor.geeksales.ui.components.GeekGhostButton
+import com.realtor.geeksales.ui.components.GeekPrimaryButton
+import com.realtor.geeksales.ui.components.GeekTopBar
+import com.realtor.geeksales.ui.components.IntentLevelChip
+import com.realtor.geeksales.ui.components.resultColor
+import com.realtor.geeksales.ui.theme.Accent
+import com.realtor.geeksales.ui.theme.Bg
+import com.realtor.geeksales.ui.theme.BgElev2
+import com.realtor.geeksales.ui.theme.Danger
+import com.realtor.geeksales.ui.theme.Divider
+import com.realtor.geeksales.ui.theme.Success
+import com.realtor.geeksales.ui.theme.TextMuted
+import com.realtor.geeksales.ui.theme.TextPrimary
+import com.realtor.geeksales.ui.theme.TextSecondary
+import com.realtor.geeksales.util.Formatter
+import com.realtor.geeksales.viewmodel.CustomerDetailViewModel
+
+@Composable
+fun CustomerDetailScreen(
+    id: Long,
+    onNav: (String) -> Unit,
+    onBack: () -> Unit,
+    openFollowUp: (Long) -> Unit,
+    vm: CustomerDetailViewModel = hiltViewModel()
+) {
+    val c by vm.customer.collectAsStateWithLifecycle()
+    val list by vm.followUps.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(id) { vm.setCustomerId(id) }
+    // 超时降级：3 秒仍未加载出客户，显示明确错误态而非无限转圈（历史"看似假死"来源之一）
+    var loadTimeout by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(id, c) {
+        if (c == null) {
+            loadTimeout = false
+            kotlinx.coroutines.delay(3000)
+            if (c == null) loadTimeout = true
+        } else loadTimeout = false
+    }
+    Column(Modifier.fillMaxSize().background(Bg)) {
+        GeekTopBar(
+            title = "客户详情",
+            subtitle = c?.name ?: "--",
+            onBack = onBack,
+            actions = {
+                if (c != null) {
+                    GeekGhostButton("编辑", onClick = { onNav(Routes.customerEdit(c!!.id)) }, color = Accent)
+                }
+            }
+        )
+        if (c == null) {
+            if (loadTimeout) {
+                // 明确的错误界面：可返回、可重试，绝不无限转圈
+                Column(Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text("未找到该客户", color = Danger, style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.height(8.dp))
+                    Text("可能已被删除，或数据加载异常。", color = TextMuted, style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(20.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        GeekGhostButton("返回", color = Accent, onClick = onBack)
+                        GeekGhostButton("重试", color = Success, onClick = { loadTimeout = false; vm.setCustomerId(id) })
+                    }
+                }
+            } else {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        androidx.compose.material3.CircularProgressIndicator(color = Accent, modifier = Modifier.width(32.dp).height(32.dp))
+                        Spacer(Modifier.height(12.dp))
+                        Text("加载中...", color = TextMuted, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+            return@Column
+        }
+        val customer = c!!
+        LazyColumn(Modifier.fillMaxSize()) {
+            item {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GeekCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(customer.name, color = TextPrimary, style = MaterialTheme.typography.headlineMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                                Spacer(Modifier.width(10.dp))
+                                IntentLevelChip(customer.intentLevel)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("电话  ", color = TextMuted, style = MaterialTheme.typography.bodyMedium)
+                                Text(customer.phone, color = Accent, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.headlineMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            }
+                            if (!customer.phone2.isNullOrBlank()) Row { Text("备用  ", color = TextMuted, style = MaterialTheme.typography.bodyMedium); Spacer(Modifier.width(4.dp)); Text(customer.phone2!!, color = TextSecondary, style = MaterialTheme.typography.bodyMedium) }
+                            KV("性别", customer.gender); KV("年龄", customer.age?.toString()); KV("微信", customer.wechat); KV("来源", customer.source)
+                            KV("区域", customer.areaPref)
+                            val budget = buildString {
+                                if (customer.budgetMinWan != null) append(customer.budgetMinWan)
+                                if (customer.budgetMinWan != null || customer.budgetMaxWan != null) append(" ~ ")
+                                if (customer.budgetMaxWan != null) append(customer.budgetMaxWan)
+                                if (isNotBlank()) append(" 万")
+                            }
+                            KV("预算", budget.ifBlank { null })
+                            KV("房型", customer.houseType)
+                            KV("意向楼盘", customer.targetProject)
+                            KV("下次跟进", if (customer.nextFollowAt == null) null else Formatter.full(customer.nextFollowAt))
+                            KV("拨打次数", "${customer.dialCount}  |  最近 ${Formatter.full(customer.lastDialAt)}")
+                            if (!customer.note.isNullOrBlank()) {
+                                Spacer(Modifier.height(4.dp))
+                                Column(Modifier.fillMaxWidth().background(BgElev2).padding(10.dp).border(1.dp, Divider)) {
+                                    Text("备注", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+                                    Text(customer.note!!, color = TextPrimary, style = MaterialTheme.typography.bodyLarge)
+                                }
+                            }
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        GeekPrimaryButton("拨号", { vm.dial(false) }, Modifier.weight(1f))
+                        GeekGhostButton("直接拨打", color = Danger, onClick = { vm.dial(true) })
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        GeekPrimaryButton("登记跟进", { openFollowUp(customer.id) }, Modifier.weight(1f))
+                        GeekGhostButton(if (customer.queued) "从队列移除" else "加入拨号队列", color = Success, onClick = { vm.toggleQueue() })
+                    }
+                }
+            }
+            item { AsciiDivider(Modifier.padding(horizontal = 12.dp)) }
+            item {
+                Column(Modifier.padding(12.dp)) {
+                    Text("跟进记录", color = Accent, style = MaterialTheme.typography.labelMedium)
+                    Spacer(Modifier.height(6.dp))
+                }
+            }
+            if (list.isEmpty()) {
+                item { EmptyState("还没有跟进记录", "拨打一次电话后，挂断会自动弹出登记卡片。") }
+            } else {
+                items(list) { f -> FollowItem(f) }
+            }
+            item { Spacer(Modifier.height(100.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun FollowItem(f: FollowUp) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp)) {
+        Column(Modifier.background(BgElev2).padding(12.dp).border(1.dp, Divider)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(followResultLabel(f.result), color = resultColor(f.result), style = MaterialTheme.typography.labelLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                Spacer(Modifier.width(10.dp))
+                Text("时长 ${Formatter.humanDuration(f.durationSec)}", color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.weight(1f))
+                Text(Formatter.full(f.createdAt), color = TextMuted, style = MaterialTheme.typography.labelMedium)
+            }
+            if (!f.note.isNullOrBlank()) {
+                Spacer(Modifier.height(6.dp))
+                Text(f.note!!, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            }
+            if (f.remindAt != null) {
+                Spacer(Modifier.height(4.dp))
+                Text("下次跟进  ${Formatter.full(f.remindAt)}", color = com.realtor.geeksales.ui.theme.Warning, style = MaterialTheme.typography.labelMedium)
+            }
+            if (f.fromPostCall) {
+                Spacer(Modifier.height(4.dp))
+                Text("（挂断自动登记）", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+    }
+}
+
+@Composable
+private fun KV(k: String, v: String?) {
+    if (v.isNullOrBlank()) return
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(k, color = TextMuted, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(64.dp))
+        Text(v, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+/** 跟进结果的中文标签（替代英文枚举名） */
+private fun followResultLabel(r: com.realtor.geeksales.data.db.FollowResult): String = when (r) {
+    com.realtor.geeksales.data.db.FollowResult.CONNECTED -> "已接通"
+    com.realtor.geeksales.data.db.FollowResult.APPOINTMENT -> "已约看"
+    com.realtor.geeksales.data.db.FollowResult.PENDING -> "待跟进"
+    com.realtor.geeksales.data.db.FollowResult.NOT_REACHED -> "未接通"
+    com.realtor.geeksales.data.db.FollowResult.NOT_INTERESTED -> "已拒绝"
+    com.realtor.geeksales.data.db.FollowResult.WRONG_NUMBER -> "空错号"
+    com.realtor.geeksales.data.db.FollowResult.SHUTDOWN -> "关停机"
+}
