@@ -1,5 +1,16 @@
 ﻿# TMA · 电话营销助理
 
+> **⚠️ 本项目已停止更新，归档保留。**
+>
+> TMA 是早期的纯单机版电销助手，数据全部存在手机本地。后续已由 **[知行朋友圈](https://github.com/x2it/zhixing-circle)** 接替——在保留拨号跟进核心体验的基础上，增加了云端同步、通讯录/短信/通话双向备份、标签分层体系和 Web 管理端。
+>
+> - 📱 Android 客户端：[x2it/zhixing-circle-app](https://github.com/x2it/zhixing-circle-app)
+> - 🌐 服务端 + Web 端：[x2it/zhixing-circle](https://github.com/x2it/zhixing-circle)
+>
+> 新项目仍在活跃维护，建议直接使用知行朋友圈。以下文档仅供历史参考。
+
+---
+
 > **Only the next call.** — 专注下一通电话，其余交给系统。
 >
 > Android 原生电销助手，半自动拨号 + 通话后跟进登记 + 客户档案管理。
@@ -64,8 +75,8 @@ TMA 是一款面向房产经纪人/电话销售人员的 Android 应用。核心
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/<your-org>/x2it.git
-cd x2it
+git clone https://github.com/x2it/TMA.git
+cd TMA
 
 # 2. 配置 SDK 路径
 cp local.properties.example local.properties
@@ -147,6 +158,15 @@ app/src/main/java/com/realtor/geeksales/
 - 数据全部本地存储，卸载即删除
 - 使用请遵守《个人信息保护法》及运营商反骚扰要求
 - 仅致电本人授权或合法来源的客户
+
+## 后续项目
+
+TMA 已归档，其功能由 **知行朋友圈** 系列接替：
+
+| 仓库 | 说明 |
+|---|---|
+| [x2it/zhixing-circle-app](https://github.com/x2it/zhixing-circle-app) | Android 客户端（Kotlin + Compose），在 TMA 拨号跟进基础上增加云端同步 |
+| [x2it/zhixing-circle](https://github.com/x2it/zhixing-circle) | 服务端 + Web 管理端（NestJS + React + PostgreSQL） |
 
 ## License
 
