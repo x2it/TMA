@@ -1,4 +1,4 @@
-﻿# TMA · 电话营销助理
+# TMA · 电话营销助理
 
 > **⚠️ 本项目已停止更新，归档保留。**
 >
@@ -8,6 +8,10 @@
 > - 🌐 服务端 + Web 端：[x2it/zhixing-sync-server](https://github.com/x2it/zhixing-sync-server)
 >
 > 新项目仍在活跃维护，建议直接使用知行同步助手。以下文档仅供历史参考。
+
+<img src="https://raw.githubusercontent.com/x2it/TMA/main/banner.png" alt="电话营销助理 · TMA" width="100%">
+
+**TMA (Telemarketing Assistant)** is an **archived, standalone** Android cold-calling assistant — semi-automatic dialing, post-call follow-up logging and a local customer archive. All data stays on-device (Room/SQLite); it is no longer maintained and has been succeeded by the cloud-backed 知行同步助手 project above. The documentation below is kept for historical reference only.
 
 ---
 
@@ -170,8 +174,4 @@ TMA 已归档，其功能由 **知行同步助手** 系列接替：
 
 ## License
 
-MIT License - 见 [LICENSE](LICENSE)
-
-## 致谢
-
-© 2026 知行工作室
+[MIT](LICENSE) © 2026 知行工作室 Zhixing Studio · [https://w3b.pub/](https://w3b.pub/) · support@w3b.pub
